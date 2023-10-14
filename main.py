@@ -13,7 +13,11 @@ LAB_CRITERIA = ['Lupus anticoagulant',
 
 
 def initialize_app():
+    # Initialize page to start at 0
     st.session_state.setdefault('page', 0)
+
+    # Initialize cache to save initial state of all widgets
+    # As the program runs, session_state.cache will update with the current state of all widgets
     if 'cache' not in st.session_state:
         st.session_state.cache = dict()
     for i in range(len(CLINICAL_CRITERIA)):
@@ -33,6 +37,10 @@ def meets_entry_criteria():
         return False
 
 
+def update_cache(key):
+    st.session_state.cache[key] = st.session_state[key]
+
+
 initialize_app()
 
 if st.session_state['page'] == 0:  # Entry criteria page
@@ -41,13 +49,22 @@ if st.session_state['page'] == 0:  # Entry criteria page
     with col1:
         st.write('#### At least one clinical criterion')
         for i, criterion in enumerate(CLINICAL_CRITERIA):
-            st.session_state.cache[f'clinical_{i}'] = st.checkbox(criterion,
-                                                                  value=st.session_state.cache[f'clinical_{i}'])
+            obj_name = f'clinical_{i}'
+            st.checkbox(criterion,
+                        value=st.session_state.cache[obj_name],
+                        key=obj_name,
+                        on_change=update_cache,
+                        kwargs={'key': obj_name})
 
     with col2:
         st.write('#### Positive antiphospholipid test within three years of the clinical criterion')
         for i, criterion in enumerate(LAB_CRITERIA):
-            st.session_state.cache[f'lab_{i}'] = st.checkbox(criterion, value=st.session_state.cache[f'lab_{i}'])
+            obj_name = f'lab_{i}'
+            st.checkbox(criterion,
+                        value=st.session_state.cache[obj_name],
+                        key=obj_name,
+                        on_change=update_cache,
+                        kwargs={'key': obj_name})
 
     # Can only proceed if patient meets at least one clinical and one lab criterion
     submit_entry_criteria = st.button('Apply additive criteria', disabled=not meets_entry_criteria())
