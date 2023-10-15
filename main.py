@@ -11,6 +11,21 @@ LAB_CRITERIA = ['Lupus anticoagulant',
                 'Anti-cardiolipin (IgG or IgM) at moderate-high titre',
                 'Anti-b2-glycoprotein I (IgG or IgM) at moderate-high titre']
 
+MICROVASCULAR_SUSPECTED_CRITERIA = {
+    'Livedo racemosa (exam)': 'livedo_racemosa',
+    'Livedoid vasculopathy lesions (exam)': 'livedo_vasculopathy_exam',
+    'Acute/chronic aPL-nephropathy (exam or lab)': 'apl_nephropathy_exam',
+    'Pulmonary hemorrhage (symptoms and imaging)': 'pulm_hemorrhage_symptoms'
+}
+
+MICROVASCULAR_ESTABLISHED_CRITERIA = {
+    'Livedoid vasculopathy (pathology)': 'livedo_vasculopathy_path',
+    'Acute/chronic aPL-nephropathy (pathology)': 'apl_nephropathy_path',
+    'Pulmonary hemorrhage (BAL or pathology)': 'pulm_hemorrhage_path',
+    'Myocardial disease (imaging or pathology)': 'myocardial_path',
+    'Adrenal hemorrhage (imaging or pathology)': 'adrenal_hemorrhage_path'
+}
+
 
 def initialize_app():
     # Initialize page to start at 0
@@ -93,7 +108,7 @@ def show_entry_criteria_page():
 def show_additive_vte_page():
     """Page showing additive criteria for D1 (venous thromboembolism)"""
     st.write("# Additive clinical criteria #")
-    st.write('### D1. Macrovascular (Venous thromboembolism) ####')
+    st.write('### D1. Macrovascular (Venous thromboembolism) ###')
     major_risk_factors_tab, minor_risk_factors_tab = st.tabs(['__Major risk factors__', '__Minor risk factors__'])
     with major_risk_factors_tab:
         st.markdown("""
@@ -128,9 +143,9 @@ def show_additive_vte_page():
 
 
 def show_additive_ate_page():
-    """Page showing additive criteria for D1 (venous thromboembolism)"""
+    """Page showing additive criteria for D2 (arterial thromboembolism)"""
     st.write("# Additive clinical criteria #")
-    st.write('### D2. Macrovascular (Arterial thromboembolism) ####')
+    st.write('### D2. Macrovascular (Arterial thromboembolism) ###')
     high_risk_factors_tab, mod_risk_factors_tab = st.tabs(
         ['__High CVD risk factors__', '__Moderate CVD risk factors__'])
     with high_risk_factors_tab:
@@ -162,6 +177,24 @@ def show_additive_ate_page():
     show_next_and_back_buttons()
 
 
+def show_microvascular_page():
+    """Page showing additive criteria for D3 (microvascular)"""
+    st.write("# Additive clinical criteria #")
+    st.write('### D3. Microvascular ####')
+    col1, col2 = st.columns(2)
+    with col1:
+        st.write('##### *Suspected* (one or more of the following): 2 points')
+        for text, key in MICROVASCULAR_SUSPECTED_CRITERIA.items():
+            persistent_checkbox(text, key)
+
+    with col2:
+        st.write('##### *Established* (one or more of the following): 5 points')
+        for text, key in MICROVASCULAR_ESTABLISHED_CRITERIA.items():
+            persistent_checkbox(text, key)
+
+    show_next_and_back_buttons()
+
+
 if __name__ == '__main__':
     initialize_app()
 
@@ -174,3 +207,6 @@ if __name__ == '__main__':
 
         case 2:
             show_additive_ate_page()
+
+        case 3:
+            show_microvascular_page()
