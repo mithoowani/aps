@@ -17,14 +17,8 @@ def initialize_app():
     st.session_state.setdefault('page', 0)
 
     # Initialize cache to save initial state of all widgets
-    # As the program runs, session_state.cache will update with the current state of all widgets
-    # in order to save their state
-    if 'cache' not in st.session_state:
-        st.session_state.cache = dict()
-    for i in range(len(CLINICAL_CRITERIA)):
-        st.session_state.cache.setdefault(f'clinical_{i}', False)
-    for i in range(len(LAB_CRITERIA)):
-        st.session_state.cache.setdefault(f'lab_{i}', False)
+    # As the program runs, session_state.cache will update with the saved state of all widgets
+    st.session_state.setdefault('cache', dict())
 
 
 def meets_entry_criteria():
@@ -42,6 +36,15 @@ def update_cache(key):
     """Updates session_sate.cache to reflect the current state of each widget; this ensures
     that the state gets preserved when switching between pages in the app"""
     st.session_state.cache[key] = st.session_state[key]
+
+
+def persistent_checkbox(text, key):
+    st.session_state.cache.setdefault(key, False)
+    return st.checkbox(text,
+                       value=st.session_state.cache[key],
+                       key=key,
+                       on_change=update_cache,
+                       kwargs={'key': key})
 
 
 def show_next_and_back_buttons():
@@ -71,22 +74,12 @@ def show_entry_criteria_page():
     with col1:
         st.write('#### At least one clinical criterion')
         for i, criterion in enumerate(CLINICAL_CRITERIA):
-            obj_key = f'clinical_{i}'
-            st.checkbox(criterion,
-                        value=st.session_state.cache[obj_key],
-                        key=obj_key,
-                        on_change=update_cache,
-                        kwargs={'key': obj_key})
+            persistent_checkbox(criterion, f'clinical_{i}')
 
     with col2:
         st.write('#### Positive antiphospholipid test within three years of the clinical criterion')
         for i, criterion in enumerate(LAB_CRITERIA):
-            obj_key = f'lab_{i}'
-            st.checkbox(criterion,
-                        value=st.session_state.cache[obj_key],
-                        key=obj_key,
-                        on_change=update_cache,
-                        kwargs={'key': obj_key})
+            persistent_checkbox(criterion, f'lab_{i}')
 
     # Can only proceed if patient meets at least one clinical and one lab criterion
     submit_entry_criteria = st.button('Apply additive criteria', disabled=not meets_entry_criteria())
@@ -125,11 +118,11 @@ def show_additive_vte_page():
 
     col1, col2 = st.columns(2)
     with col1:
-        vte_high_risk_profile = st.checkbox('VTE with a high risk profile (1 point)', key='vte_high_risk')
+        persistent_checkbox('VTE with a high risk profile (1 point)', 'vte_high_risk')
         st.markdown('One or more _major_ risk factors or two or more _minor_ risk factors at the time of the event')
 
     with col2:
-        vte_low_risk_profile = st.checkbox('VTE without a high risk profile (3 points)', key='vte_low_risk')
+        persistent_checkbox('VTE without a high risk profile (3 points)', 'vte_low_risk')
 
     show_next_and_back_buttons()
 
@@ -160,11 +153,11 @@ def show_additive_ate_page():
 
     col1, col2 = st.columns(2)
     with col1:
-        ate_high_risk_profile = st.checkbox('ATE with a high risk CVD profile (2 points)', key='ate_high_risk')
+        persistent_checkbox('ATE with a high risk CVD profile (2 points)', 'ate_high_risk')
         st.markdown('One or more _high CVD risk factors_ or 3 or more _moderate CVD risk factors_')
 
     with col2:
-        ate_low_risk_profile = st.checkbox('ATE without a high risk CVD profile (4 points)', key='ate_low_risk')
+        persistent_checkbox('ATE without a high risk CVD profile (4 points)', 'ate_low_risk')
 
     show_next_and_back_buttons()
 
