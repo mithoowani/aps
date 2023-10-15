@@ -18,6 +18,7 @@ def initialize_app():
 
     # Initialize cache to save initial state of all widgets
     # As the program runs, session_state.cache will update with the current state of all widgets
+    # in order to save their state
     if 'cache' not in st.session_state:
         st.session_state.cache = dict()
     for i in range(len(CLINICAL_CRITERIA)):
@@ -38,6 +39,8 @@ def meets_entry_criteria():
 
 
 def update_cache(key):
+    """Updates session_sate.cache to reflect the current state of each widget; this ensures
+    that the state gets preserved when switching between pages in the app"""
     st.session_state.cache[key] = st.session_state[key]
 
 
@@ -49,22 +52,22 @@ if st.session_state['page'] == 0:  # Entry criteria page
     with col1:
         st.write('#### At least one clinical criterion')
         for i, criterion in enumerate(CLINICAL_CRITERIA):
-            obj_name = f'clinical_{i}'
+            obj_key = f'clinical_{i}'
             st.checkbox(criterion,
-                        value=st.session_state.cache[obj_name],
-                        key=obj_name,
+                        value=st.session_state.cache[obj_key],
+                        key=obj_key,
                         on_change=update_cache,
-                        kwargs={'key': obj_name})
+                        kwargs={'key': obj_key})
 
     with col2:
         st.write('#### Positive antiphospholipid test within three years of the clinical criterion')
         for i, criterion in enumerate(LAB_CRITERIA):
-            obj_name = f'lab_{i}'
+            obj_key = f'lab_{i}'
             st.checkbox(criterion,
-                        value=st.session_state.cache[obj_name],
-                        key=obj_name,
+                        value=st.session_state.cache[obj_key],
+                        key=obj_key,
                         on_change=update_cache,
-                        kwargs={'key': obj_name})
+                        kwargs={'key': obj_key})
 
     # Can only proceed if patient meets at least one clinical and one lab criterion
     submit_entry_criteria = st.button('Apply additive criteria', disabled=not meets_entry_criteria())
@@ -73,8 +76,6 @@ if st.session_state['page'] == 0:  # Entry criteria page
     if submit_entry_criteria:
         st.session_state['page'] += 1
         st.rerun()
-
-    st.write(st.session_state)  # TODO: remove this
 
 elif st.session_state['page'] == 1:
     st.write("# Additive clinical criteria #")
@@ -125,5 +126,3 @@ elif st.session_state['page'] == 1:
     if back_button:
         st.session_state['page'] -= 1
         st.rerun()
-
-    st.write(st.session_state)  # TODO: remove this
