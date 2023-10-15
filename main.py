@@ -44,9 +44,8 @@ def update_cache(key):
     st.session_state.cache[key] = st.session_state[key]
 
 
-initialize_app()
-
-if st.session_state['page'] == 0:  # Entry criteria page
+def show_entry_criteria_page():
+    """Page showing entry criteria for algorithm"""
     st.write("# Step 1: Entry criteria")
     col1, col2 = st.columns(2)
     with col1:
@@ -77,7 +76,9 @@ if st.session_state['page'] == 0:  # Entry criteria page
         st.session_state['page'] += 1
         st.rerun()
 
-elif st.session_state['page'] == 1:
+
+def show_additive_vte_page():
+    """Page showing additive criteria for D1 (venous thromboembolism)"""
     st.write("# Additive clinical criteria #")
     st.write('### D1. Macrovascular (Venous thromboembolism) ####')
     major_risk_factors, minor_risk_factors = st.tabs(['__Major risk factors__', '__Minor risk factors__'])
@@ -126,3 +127,13 @@ elif st.session_state['page'] == 1:
     if back_button:
         st.session_state['page'] -= 1
         st.rerun()
+
+
+if __name__ == '__main__':
+    initialize_app()
+
+    if st.session_state['page'] == 0:
+        show_entry_criteria_page()
+
+    elif st.session_state['page'] == 1:
+        show_additive_vte_page()
