@@ -1,3 +1,8 @@
+"""
+Web app for applying revised EULAR 2023 antiphospholipid syndrome (APS) classification criteria
+Full text: Arthritis Rheumatol . 2023 Oct;75(10):1687-1702.  doi: 10.1002/art.42624.  Epub 2023 Aug 28
+"""
+
 import streamlit as st
 
 CLINICAL_CRITERIA = ['Macrovascular: Venous thromboembolism',
