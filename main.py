@@ -44,6 +44,26 @@ def update_cache(key):
     st.session_state.cache[key] = st.session_state[key]
 
 
+def show_next_and_back_buttons():
+    """Shows next and back buttons at the bottom of the page"""
+    col1, inter_cols_space, col2 = st.columns([1, 8, 1])
+    with col1:
+        back_button = st.button('Back')
+
+    with col2:
+        next_button = st.button('Next')
+
+    # Move to next page and refresh
+    if next_button:
+        st.session_state['page'] += 1
+        st.rerun()
+
+    # Move to previous page and refresh
+    if back_button:
+        st.session_state['page'] -= 1
+        st.rerun()
+
+
 def show_entry_criteria_page():
     """Page showing entry criteria for algorithm"""
     st.write("# Step 1: Entry criteria")
@@ -81,14 +101,14 @@ def show_additive_vte_page():
     """Page showing additive criteria for D1 (venous thromboembolism)"""
     st.write("# Additive clinical criteria #")
     st.write('### D1. Macrovascular (Venous thromboembolism) ####')
-    major_risk_factors, minor_risk_factors = st.tabs(['__Major risk factors__', '__Minor risk factors__'])
-    with major_risk_factors:
+    major_risk_factors_tab, minor_risk_factors_tab = st.tabs(['__Major risk factors__', '__Minor risk factors__'])
+    with major_risk_factors_tab:
         st.markdown("""
         1.  **Active malignancy** with no or noncurative treatment received, ongoing curative treatment including hormonal therapy, or recurrence progression despite curative treatment at the time of the event
         2.  **Hospital admission** confined to bed (only bathroom privileges) with an acute illness for at least 3 days within 3 months prior to the event. Major trauma with fractures or spinal cord injury within 1 month prior to the event
         3.  **Surgery** with general/spinal/epidural anesthesia for >30 minutes within 3 months prior to the event
         """)
-    with minor_risk_factors:
+    with minor_risk_factors_tab:
         st.markdown("""
         1.  **Active systemic autoimmune disease or active inflammatory bowel disease** using disease activity measures guided by current recommendations.
         2.  **Acute/active severe infection** according to guidelines, e.g., sepsis, pneumonia, SARS-CoV-2
@@ -111,29 +131,53 @@ def show_additive_vte_page():
     with col2:
         vte_low_risk_profile = st.checkbox('VTE without a high risk profile (3 points)', key='vte_low_risk')
 
-    col1, inter_cols_space, col2 = st.columns([1, 8, 1])
+    show_next_and_back_buttons()
+
+
+def show_additive_ate_page():
+    """Page showing additive criteria for D1 (venous thromboembolism)"""
+    st.write("# Additive clinical criteria #")
+    st.write('### D2. Macrovascular (Arterial thromboembolism) ####')
+    high_risk_factors_tab, mod_risk_factors_tab = st.tabs(
+        ['__High CVD risk factors__', '__Moderate CVD risk factors__'])
+    with high_risk_factors_tab:
+        st.markdown("""
+        1.  **Arterial hypertension** with systolic blood pressure (BP) ≥180 mm Hg or diastolic BP ≥110 mm Hg
+        2.  **Chronic kidney disease** with estimated glomerular filtration rate ≤60 ml/minute for more than 3 months
+        3.  **Diabetes mellitus** with organ damage or long disease duration (type 1 for ≥20 years; type 2 for ≥10 years)
+        4.  **Hyperlipidemia** (severe) with total cholesterol ≥310 mg/dl (8 mmoles/liter) or low-density lipoprotein (LDL)–cholesterol >190 mg/dl (4.9 mmoles/liter)
+        """)
+    with mod_risk_factors_tab:
+        st.markdown("""
+        1.  **Arterial hypertension** on treatment, or with persistent systolic BP ≥140 mm Hg or diastolic BP ≥90 mm Hg
+        2.  **Current tobacco smoking**
+        3.  **Diabetes mellitus** with no organ damage and short disease duration (type 1 <20 years; type 2 <10 years)
+        4.  **Hyperlipidemia** (moderate) on treatment, or with total cholesterol above normal range and <310 mg/dl (8 mmoles/liter), or LDL-cholesterol above normal range and <190 mg/dl (4.9 mmoles/liter)
+        5.  **Obesity** (BMI ≥30 kg/m2)
+        """)
+
+    st.markdown('#')
+
+    col1, col2 = st.columns(2)
     with col1:
-        back_button = st.button('Back')
+        ate_high_risk_profile = st.checkbox('ATE with a high risk CVD profile (2 points)', key='ate_high_risk')
+        st.markdown('One or more _high CVD risk factors_ or 3 or more _moderate CVD risk factors_')
 
     with col2:
-        next_button = st.button('Next')
+        ate_low_risk_profile = st.checkbox('ATE without a high risk CVD profile (4 points)', key='ate_low_risk')
 
-    # Move to next page and refresh
-    if next_button:
-        st.session_state['page'] += 1
-        st.rerun()
-
-    # Move to previous page and refresh
-    if back_button:
-        st.session_state['page'] -= 1
-        st.rerun()
+    show_next_and_back_buttons()
 
 
 if __name__ == '__main__':
     initialize_app()
 
-    if st.session_state['page'] == 0:
-        show_entry_criteria_page()
+    match st.session_state['page']:
+        case 0:
+            show_entry_criteria_page()
 
-    elif st.session_state['page'] == 1:
-        show_additive_vte_page()
+        case 1:
+            show_additive_vte_page()
+
+        case 2:
+            show_additive_ate_page()
