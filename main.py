@@ -3,64 +3,22 @@ Web app for applying revised EULAR 2023 antiphospholipid syndrome (APS) classifi
 Full text: Arthritis Rheumatol . 2023 Oct;75(10):1687-1702.  doi: 10.1002/art.42624.  Epub 2023 Aug 28
 """
 
+# TODO: Consider adding type hinting in future
+# TODO: Refactor the generic pages to a common function (DRY)
+
 import streamlit as st
+from aps_criteria import Criterion, criteria
 
-CLINICAL_CRITERIA = ['Macrovascular: Venous thromboembolism',
-                     'Macrovascular: Arterial thromboembolism',
-                     'Microvascular',
-                     'Obstetric criteria',
-                     'Cardiac valve',
-                     'Hematology']
+ENTRY_CLINICAL_CRITERIA = ['Macrovascular: Venous thromboembolism',
+                           'Macrovascular: Arterial thromboembolism',
+                           'Microvascular',
+                           'Obstetric criteria',
+                           'Cardiac valve',
+                           'Hematology']
 
-LAB_CRITERIA = ['Lupus anticoagulant',
-                'Anti-cardiolipin (IgG or IgM) at moderate-high titre',
-                'Anti-b2-glycoprotein I (IgG or IgM) at moderate-high titre']
-
-MICROVASCULAR_SUSPECTED_CRITERIA = {
-    'Livedo racemosa (exam)': 'livedo_racemosa',
-    'Livedoid vasculopathy lesions (exam)': 'livedo_vasculopathy_exam',
-    'Acute/chronic aPL-nephropathy (exam or lab)': 'apl_nephropathy_exam',
-    'Pulmonary hemorrhage (symptoms and imaging)': 'pulm_hemorrhage_symptoms'
-}
-
-MICROVASCULAR_ESTABLISHED_CRITERIA = {
-    'Livedoid vasculopathy (pathology)': 'livedo_vasculopathy_path',
-    'Acute/chronic aPL-nephropathy (pathology)': 'apl_nephropathy_path',
-    'Pulmonary hemorrhage (BAL or pathology)': 'pulm_hemorrhage_path',
-    'Myocardial disease (imaging or pathology)': 'myocardial_path',
-    'Adrenal hemorrhage (imaging or pathology)': 'adrenal_hemorrhage_path'
-}
-
-OBSTETRIC_CRITERIA = {
-    '3 or more consecutive pre-fetal (<10w) and/or early fetal (10w -15w 6d) deaths (**1 point**)':
-        '3_consecutive_losses',
-
-    'Fetal death (16w – 33w 6d) in the absence of 1 pre-eclampsia (PEC) with severe features or placental '
-    'insufficiency with severe features (**1 point**)': '16_week_fetal_death',
-
-    'Pre-eclampsia with severe features (<34w) _OR_ placental insufficiency with 3 severe features (<34w with/without '
-    'fetal death (**3 points**)': 'pre_eclampsia_or_pi',
-
-    'Pre-eclampsia with severe features (<34w) _AND_ placental insufficiency with 3 severe features (<34w '
-    'with/without fetal death (**4 points**)': 'pre_eclampsia_and_pi'
-}
-
-CARDIAC_CRITERIA = {
-    'Thickening (**2 points**)': 'valve_thickening',
-    'Vegetation (**4 points**)': 'valve_vegetation'
-}
-
-LAC_CRITERIA = {
-    'Positive LAC (single – one time) (**1 point**)': 'single_lac',
-    'Positive LAC (persistent) (**5 points**)': 'persistent_lac'
-}
-
-APL_CRITERIA = {
-    'Moderate or high positive IgM (aCL and/or aβ2GPI) (**1 point**)': 'mod_high_igm',
-    'Moderate positive IgG (aCL and/or aβ2GPI) (**4 points**)': 'mod_pos_igg',
-    'High positive IgG (aCL _OR_ aβ2GPI) (**5 points**)': 'high_pos_igg_or',
-    'High positive IgG (aCL _AND_ aβ2GPI) (**7 points**)': 'high_pos_igg_and',
-}
+ENTRY_LAB_CRITERIA = ['Lupus anticoagulant',
+                      'Anti-cardiolipin (IgG or IgM) at moderate-high titre',
+                      'Anti-b2-glycoprotein I (IgG or IgM) at moderate-high titre']
 
 
 def initialize_app():
@@ -75,27 +33,28 @@ def initialize_app():
 def meets_entry_criteria():
     """Checks whether entry criteria are met to enter the algorithm, i.e. whether at least one clinical criterion
     and at least one laboratory criterion are checked off by the user"""
-    meets_clinical_criteria = any(st.session_state.cache[f'clinical_{i}'] for i in range(len(CLINICAL_CRITERIA)))
-    meets_lab_criteria = any(st.session_state.cache[f'lab_{i}'] for i in range(len(LAB_CRITERIA)))
+    meets_clinical_criteria = any(st.session_state[f'entry_clinical_{i}'] for i in range(len(ENTRY_CLINICAL_CRITERIA)))
+    meets_lab_criteria = any(st.session_state[f'entry_lab_{i}'] for i in range(len(ENTRY_LAB_CRITERIA)))
     if meets_clinical_criteria and meets_lab_criteria:
         return True
     else:
         return False
 
 
-def update_cache(key):
+def update_cache(key: str):
     """Updates session_sate.cache to reflect the current state of each widget; this ensures
     that the state gets preserved when switching between pages in the app"""
     st.session_state.cache[key] = st.session_state[key]
 
 
-def persistent_checkbox(text, key):
-    st.session_state.cache.setdefault(key, False)
-    return st.checkbox(text,
-                       value=st.session_state.cache[key],
-                       key=key,
+def stateful_checkbox(criterion: Criterion):
+    st.session_state.cache.setdefault(criterion.key, False)
+
+    return st.checkbox(criterion.descriptor,
+                       value=st.session_state.cache[criterion.key],
+                       key=criterion.key,
                        on_change=update_cache,
-                       kwargs={'key': key})
+                       kwargs={'key': criterion.key})
 
 
 def show_next_and_back_buttons(last_page=False, score_page=False):
@@ -138,13 +97,13 @@ def show_entry_criteria_page():
     col1, col2 = st.columns(2)
     with col1:
         st.write('#### At least one clinical criterion')
-        for i, criterion in enumerate(CLINICAL_CRITERIA):
-            persistent_checkbox(criterion, f'clinical_{i}')
+        for i, criterion in enumerate(ENTRY_CLINICAL_CRITERIA):
+            st.checkbox(criterion, key=f'entry_clinical_{i}')
 
     with col2:
         st.write('#### Positive antiphospholipid test within three years of the clinical criterion')
-        for i, criterion in enumerate(LAB_CRITERIA):
-            persistent_checkbox(criterion, f'lab_{i}')
+        for i, criterion in enumerate(ENTRY_LAB_CRITERIA):
+            st.checkbox(criterion, key=f'entry_lab_{i}')
 
     # Can only proceed if patient meets at least one clinical and one lab criterion
     submit_entry_criteria = st.button('Apply additive criteria', disabled=not meets_entry_criteria())
@@ -154,8 +113,10 @@ def show_entry_criteria_page():
         st.session_state['page'] += 1
         st.rerun()
 
+    st.write(st.session_state)
 
-def show_additive_vte_page():
+
+def show_vte_page():
     """Page showing additive criteria for D1 (venous thromboembolism)"""
     st.write("# Additive clinical criteria #")
     st.write('### D1. Macrovascular (Venous thromboembolism) ###')
@@ -183,16 +144,16 @@ def show_additive_vte_page():
 
     col1, col2 = st.columns(2)
     with col1:
-        persistent_checkbox('VTE with a high risk profile (1 point)', 'vte_high_risk')
-        st.markdown('One or more _major_ risk factors or two or more _minor_ risk factors at the time of the event')
+        stateful_checkbox(criteria['vte_high_risk'])
+        st.caption('One or more _major_ risk factors or two or more _minor_ risk factors at the time of the event')
 
     with col2:
-        persistent_checkbox('VTE without a high risk profile (3 points)', 'vte_low_risk')
+        stateful_checkbox(criteria['vte_low_risk'])
 
     show_next_and_back_buttons()
 
 
-def show_additive_ate_page():
+def show_ate_page():
     """Page showing additive criteria for D2 (arterial thromboembolism)"""
     st.write("# Additive clinical criteria #")
     st.write('### D2. Macrovascular (Arterial thromboembolism) ###')
@@ -218,87 +179,118 @@ def show_additive_ate_page():
 
     col1, col2 = st.columns(2)
     with col1:
-        persistent_checkbox('ATE with a high risk CVD profile (2 points)', 'ate_high_risk')
-        st.markdown('One or more _high CVD risk factors_ or 3 or more _moderate CVD risk factors_')
+        stateful_checkbox(criteria['ate_high_risk'])
+        st.caption('One or more _high CVD risk factors_ or 3 or more _moderate CVD risk factors_')
 
     with col2:
-        persistent_checkbox('ATE without a high risk CVD profile (4 points)', 'ate_low_risk')
+        stateful_checkbox(criteria['ate_low_risk'])
 
     show_next_and_back_buttons()
 
 
 def show_microvascular_page():
     """Page showing additive criteria for D3 (microvascular)"""
+    suspected_microvascular_criteria = [criterion for criterion in criteria.values() if (criterion.domain == 3 and
+                                                                                         criterion.points == 2)]
+
+    established_microvascular_criteria = [criterion for criterion in criteria.values() if (criterion.domain == 3 and
+                                                                                           criterion.points == 5)]
+
     st.write("# Additive clinical criteria #")
     st.write('### D3. Microvascular ###')
     col1, col2 = st.columns(2)
     with col1:
         st.write('##### *Suspected* (one or more of the following): 2 points')
-        for text, key in MICROVASCULAR_SUSPECTED_CRITERIA.items():
-            persistent_checkbox(text, key)
+        for key in suspected_microvascular_criteria:
+            stateful_checkbox(key)
 
     with col2:
         st.write('##### *Established* (one or more of the following): 5 points')
-        for text, key in MICROVASCULAR_ESTABLISHED_CRITERIA.items():
-            persistent_checkbox(text, key)
+        for key in established_microvascular_criteria:
+            stateful_checkbox(key)
 
     show_next_and_back_buttons()
 
 
 def show_obstetric_page():
     """Page showing additive criteria for D4 (obstetric)"""
+    obstetric_criteria = [criterion for criterion in criteria.values() if criterion.domain == 4]
+
     st.write("# Additive clinical criteria #")
     st.write('### D4. Obstetric ###')
-    for text, key in OBSTETRIC_CRITERIA.items():
-        persistent_checkbox(text, key)
+    for key in obstetric_criteria:
+        stateful_checkbox(key)
 
     show_next_and_back_buttons()
 
 
 def show_cardiac_page():
     """Page showing additive criteria for D5 (cardiac valve)"""
+    cardiac_criteria = [criterion for criterion in criteria.values() if criterion.domain == 5]
+
     st.write("# Additive clinical criteria #")
     st.write('### D5. Cardiac valve ###')
-    for text, key in CARDIAC_CRITERIA.items():
-        persistent_checkbox(text, key)
+    for key in cardiac_criteria:
+        stateful_checkbox(key)
 
     show_next_and_back_buttons()
 
 
 def show_hematology_page():
     """Page showing additive criteria for D6 (hematology)"""
+    heme_criteria = [criterion for criterion in criteria.values() if criterion.domain == 6]
+
     st.write("# Additive clinical criteria #")
     st.write('### D6. Hematology ###')
-    persistent_checkbox('Thrombocytopenia (lowest 20-130 x109/L) (**2 points**)', 'thrombocytopenia')
+    for key in heme_criteria:
+        stateful_checkbox(key)
 
     show_next_and_back_buttons()
 
 
 def show_lac_page():
     """Page showing additive criteria for D7 (lupus anticoagulant)"""
+    lac_criteria = [criterion for criterion in criteria.values() if criterion.domain == 7]
+
     st.write("# Additive laboratory criteria #")
     st.write('### D7. aPL test by coagulation-based functional assay (lupus anticoagulant test [LAC]) ###')
-    for text, key in LAC_CRITERIA.items():
-        persistent_checkbox(text, key)
+    for key in lac_criteria:
+        stateful_checkbox(key)
 
     show_next_and_back_buttons()
 
 
 def show_apl_page():
     """Page showing additive criteria for D8 (aPL tests)"""
+    apl_criteria = [criterion for criterion in criteria.values() if criterion.domain == 8]
+
     st.write("# Additive laboratory criteria #")
     st.write('### D8. aPL test by solid phase assay (anti-cardiolipin antibody [aCL] ELISA and/or '
              'anti-β2-glycoprotein-I antibody [aβ2GPI] ELISA [persistent]) ###')
-    for text, key in APL_CRITERIA.items():
-        persistent_checkbox(text, key)
+    for key in apl_criteria:
+        stateful_checkbox(key)
 
     show_next_and_back_buttons(last_page=True)
 
 
 def show_score():
     """Page showing the final scoring criteria"""
-    st.write('You have reached the final page!')
-    show_next_and_back_buttons(score_page=True)
+    st.write("# Total score #")
+    scores = [0]
+
+    multi = '''
+    If you end a line with two spaces,
+    a soft return is used for the next line.
+    Two (or more) newline characters in a row will result in a hard return
+    '''
+
+    st.code(multi, language='markdown')  # This displays nicely for EMR copy/paste
+
+    st.write(st.session_state.cache)
+
+    show_next_and_back_buttons(score_page=True)  # TODO: Restart button?
+
+    # TODO: Implement this function
 
 
 if __name__ == '__main__':
@@ -309,10 +301,10 @@ if __name__ == '__main__':
             show_entry_criteria_page()
 
         case 1:
-            show_additive_vte_page()
+            show_vte_page()
 
         case 2:
-            show_additive_ate_page()
+            show_ate_page()
 
         case 3:
             show_microvascular_page()
