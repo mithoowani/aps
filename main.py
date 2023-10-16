@@ -31,6 +31,37 @@ MICROVASCULAR_ESTABLISHED_CRITERIA = {
     'Adrenal hemorrhage (imaging or pathology)': 'adrenal_hemorrhage_path'
 }
 
+OBSTETRIC_CRITERIA = {
+    '3 or more consecutive pre-fetal (<10w) and/or early fetal (10w -15w 6d) deaths (**1 point**)':
+        '3_consecutive_losses',
+
+    'Fetal death (16w – 33w 6d) in the absence of 1 pre-eclampsia (PEC) with severe features or placental '
+    'insufficiency with severe features (**1 point**)': '16_week_fetal_death',
+
+    'Pre-eclampsia with severe features (<34w) _OR_ placental insufficiency with 3 severe features (<34w with/without '
+    'fetal death (**3 points**)': 'pre_eclampsia_or_pi',
+
+    'Pre-eclampsia with severe features (<34w) _AND_ placental insufficiency with 3 severe features (<34w '
+    'with/without fetal death (**4 points**)': 'pre_eclampsia_and_pi'
+}
+
+CARDIAC_CRITERIA = {
+    'Thickening (**2 points**)': 'valve_thickening',
+    'Vegetation (**4 points**)': 'valve_vegetation'
+}
+
+LAC_CRITERIA = {
+    'Positive LAC (single – one time) (**1 point**)': 'single_lac',
+    'Positive LAC (persistent) (**5 points**)': 'persistent_lac'
+}
+
+APL_CRITERIA = {
+    'Moderate or high positive IgM (aCL and/or aβ2GPI) (**1 point**)': 'mod_high_igm',
+    'Moderate positive IgG (aCL and/or aβ2GPI) (**4 points**)': 'mod_pos_igg',
+    'High positive IgG (aCL _OR_ aβ2GPI) (**5 points**)': 'high_pos_igg_or',
+    'High positive IgG (aCL _AND_ aβ2GPI) (**7 points**)': 'high_pos_igg_and',
+}
+
 
 def initialize_app():
     # Initialize page to start at 0
@@ -67,14 +98,28 @@ def persistent_checkbox(text, key):
                        kwargs={'key': key})
 
 
-def show_next_and_back_buttons():
-    """Shows next and back buttons at the bottom of the page"""
-    col1, inter_cols_space, col2 = st.columns([1, 8, 1])
+def show_next_and_back_buttons(last_page=False, score_page=False):
+    """
+    Shows buttons at bottom of page:
+    If last_page = True (scoring criteria D8), 'Next' button captioned as 'Calculate score' instead
+    If score_page = True, no 'Next' button is displayed
+    Note that last_page and score_page should never be BOTH true
+    """
+    if last_page:
+        col1, inter_cols_space, col2 = st.columns([1, 3, 1])
+    else:
+        col1, inter_cols_space, col2 = st.columns([1, 8, 1])
+
     with col1:
         back_button = st.button('Back')
 
     with col2:
-        next_button = st.button('Next')
+        if last_page:
+            next_button = st.button('Calculate score')
+        elif score_page:
+            next_button = None
+        else:
+            next_button = st.button('Next')
 
     # Move to next page and refresh
     if next_button:
@@ -185,7 +230,7 @@ def show_additive_ate_page():
 def show_microvascular_page():
     """Page showing additive criteria for D3 (microvascular)"""
     st.write("# Additive clinical criteria #")
-    st.write('### D3. Microvascular ####')
+    st.write('### D3. Microvascular ###')
     col1, col2 = st.columns(2)
     with col1:
         st.write('##### *Suspected* (one or more of the following): 2 points')
@@ -198,6 +243,62 @@ def show_microvascular_page():
             persistent_checkbox(text, key)
 
     show_next_and_back_buttons()
+
+
+def show_obstetric_page():
+    """Page showing additive criteria for D4 (obstetric)"""
+    st.write("# Additive clinical criteria #")
+    st.write('### D4. Obstetric ###')
+    for text, key in OBSTETRIC_CRITERIA.items():
+        persistent_checkbox(text, key)
+
+    show_next_and_back_buttons()
+
+
+def show_cardiac_page():
+    """Page showing additive criteria for D5 (cardiac valve)"""
+    st.write("# Additive clinical criteria #")
+    st.write('### D5. Cardiac valve ###')
+    for text, key in CARDIAC_CRITERIA.items():
+        persistent_checkbox(text, key)
+
+    show_next_and_back_buttons()
+
+
+def show_hematology_page():
+    """Page showing additive criteria for D6 (hematology)"""
+    st.write("# Additive clinical criteria #")
+    st.write('### D6. Hematology ###')
+    persistent_checkbox('Thrombocytopenia (lowest 20-130 x109/L) (**2 points**)', 'thrombocytopenia')
+
+    show_next_and_back_buttons()
+
+
+def show_lac_page():
+    """Page showing additive criteria for D7 (lupus anticoagulant)"""
+    st.write("# Additive laboratory criteria #")
+    st.write('### D7. aPL test by coagulation-based functional assay (lupus anticoagulant test [LAC]) ###')
+    for text, key in LAC_CRITERIA.items():
+        persistent_checkbox(text, key)
+
+    show_next_and_back_buttons()
+
+
+def show_apl_page():
+    """Page showing additive criteria for D8 (aPL tests)"""
+    st.write("# Additive laboratory criteria #")
+    st.write('### D8. aPL test by solid phase assay (anti-cardiolipin antibody [aCL] ELISA and/or '
+             'anti-β2-glycoprotein-I antibody [aβ2GPI] ELISA [persistent]) ###')
+    for text, key in APL_CRITERIA.items():
+        persistent_checkbox(text, key)
+
+    show_next_and_back_buttons(last_page=True)
+
+
+def show_score():
+    """Page showing the final scoring criteria"""
+    st.write('You have reached the final page!')
+    show_next_and_back_buttons(score_page=True)
 
 
 if __name__ == '__main__':
@@ -215,3 +316,21 @@ if __name__ == '__main__':
 
         case 3:
             show_microvascular_page()
+
+        case 4:
+            show_obstetric_page()
+
+        case 5:
+            show_cardiac_page()
+
+        case 6:
+            show_hematology_page()
+
+        case 7:
+            show_lac_page()
+
+        case 8:
+            show_apl_page()
+
+        case 9:
+            show_score()
