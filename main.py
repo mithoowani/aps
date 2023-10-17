@@ -149,6 +149,9 @@ def show_entry_criteria_page():
         st.session_state['page'] += 1
         st.rerun()
 
+    # Footer on the first page only
+    st.caption('Siraj Mithoowani (2023). View the code on [Github](https://github.com/mithoowani/aps).')
+
 
 def show_vte_page():
     """Page showing additive criteria for D1 (venous thromboembolism)"""
