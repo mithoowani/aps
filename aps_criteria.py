@@ -3,7 +3,7 @@ from collections import namedtuple
 Criterion = namedtuple('Criterion', ['key', 'domain', 'descriptor', 'points'])
 
 criteria = {
-    '16_week_fetal_death': Criterion(key='16_week_fetal_death', domain=4, descriptor='Fetal death (16w – 33w 6d) in the absence of pre-eclampsia (PEC) with severe features or placental insufficiency with severe features (**1 point**)', points=1),
+    '16_week_fetal_death': Criterion(key='16_week_fetal_death', domain=4, descriptor='Fetal death (16w – 33w 6d) in the absence of pre-eclampsia with severe features or placental insufficiency with severe features (**1 point**)', points=1),
     '3_consecutive_losses': Criterion(key='3_consecutive_losses', domain=4, descriptor='3 or more consecutive pre-fetal (<10w) and/or early fetal (10w -15w 6d) deaths (**1 point**)', points=1),
     'adrenal_hemorrhage_path': Criterion(key='adrenal_hemorrhage_path', domain=3, descriptor='Adrenal hemorrhage (imaging or pathology)', points=5),
     'apl_nephropathy_exam': Criterion(key='apl_nephropathy_exam', domain=3, descriptor='Acute/chronic aPL-nephropathy (exam or lab)', points=2),

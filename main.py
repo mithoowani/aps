@@ -150,7 +150,8 @@ def show_entry_criteria_page():
         st.rerun()
 
     # Footer on the first page only
-    st.caption('Siraj Mithoowani (2023). View the code on [Github](https://github.com/mithoowani/aps).')
+    st.caption("""ACR/EULAR Antiphospholipid Syndrome Classification Criteria (2023) [Pubmed](https://pubmed.ncbi.nlm.nih.gov/37635643/)  
+                Siraj Mithoowani (2023). View the code on [Github](https://github.com/mithoowani/aps).""")
 
 
 def show_vte_page():
@@ -165,8 +166,9 @@ def show_vte_page():
     with major_risk_factors_tab:
         st.markdown("""
         1.  **Active malignancy** with no or noncurative treatment received, ongoing curative treatment including hormonal therapy, or recurrence progression despite curative treatment at the time of the event
-        2.  **Hospital admission** confined to bed (only bathroom privileges) with an acute illness for at least 3 days within 3 months prior to the event. Major trauma with fractures or spinal cord injury within 1 month prior to the event
-        3.  **Surgery** with general/spinal/epidural anesthesia for >30 minutes within 3 months prior to the event
+        2.  **Hospital admission** confined to bed (only bathroom privileges) with an acute illness for at least 3 days within 3 months prior to the event
+        3.  **Major trauma** with fractures or spinal cord injury within 1 month prior to the event
+        4.  **Surgery** with general/spinal/epidural anesthesia for >30 minutes within 3 months prior to the event
         """)
 
     with minor_risk_factors_tab:
