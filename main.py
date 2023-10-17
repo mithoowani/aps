@@ -126,7 +126,7 @@ def show_entry_criteria_page():
 
     hide_streamlit_header_footer()
 
-    st.write("# Entry criteria")
+    st.write("# Entry criteria ")
     col1, col2 = st.columns(2)
     with col1:
         st.write('#### At least one clinical criterion')
