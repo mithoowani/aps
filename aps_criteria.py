@@ -3,7 +3,7 @@ from collections import namedtuple
 Criterion = namedtuple('Criterion', ['key', 'domain', 'descriptor', 'points'])
 
 criteria = {
-    '16_week_fetal_death': Criterion(key='16_week_fetal_death', domain=4, descriptor='Fetal death (16w – 33w 6d) in the absence of 1 pre-eclampsia (PEC) with severe features or placental insufficiency with severe features (**1 point**)', points=1),
+    '16_week_fetal_death': Criterion(key='16_week_fetal_death', domain=4, descriptor='Fetal death (16w – 33w 6d) in the absence of pre-eclampsia (PEC) with severe features or placental insufficiency with severe features (**1 point**)', points=1),
     '3_consecutive_losses': Criterion(key='3_consecutive_losses', domain=4, descriptor='3 or more consecutive pre-fetal (<10w) and/or early fetal (10w -15w 6d) deaths (**1 point**)', points=1),
     'adrenal_hemorrhage_path': Criterion(key='adrenal_hemorrhage_path', domain=3, descriptor='Adrenal hemorrhage (imaging or pathology)', points=5),
     'apl_nephropathy_exam': Criterion(key='apl_nephropathy_exam', domain=3, descriptor='Acute/chronic aPL-nephropathy (exam or lab)', points=2),
@@ -19,8 +19,8 @@ criteria = {
     'mod_pos_igg': Criterion(key='mod_pos_igg', domain=8, descriptor='Moderate positive IgG (aCL and/or aβ2GPI) (**4 points**)', points=4),
     'myocardial_path': Criterion(key='myocardial_path', domain=3, descriptor='Myocardial disease (imaging or pathology)', points=5),
     'persistent_lac': Criterion(key='persistent_lac', domain=7, descriptor='Positive LAC (persistent) (**5 points**)', points=5),
-    'pre_eclampsia_and_pi': Criterion(key='pre_eclampsia_and_pi', domain=4, descriptor='Pre-eclampsia with severe features (<34w) _AND_ placental insufficiency with 3 severe features (<34w with/without fetal death (**4 points**)', points=4),
-    'pre_eclampsia_or_pi': Criterion(key='pre_eclampsia_or_pi', domain=4, descriptor='Pre-eclampsia with severe features (<34w) _OR_ placental insufficiency with 3 severe features (<34w with/without fetal death (**3 points**)', points=3),
+    'pre_eclampsia_and_pi': Criterion(key='pre_eclampsia_and_pi', domain=4, descriptor='Pre-eclampsia with severe features (<34w) _AND_ placental insufficiency with severe features (<34w with/without fetal death (**4 points**)', points=4),
+    'pre_eclampsia_or_pi': Criterion(key='pre_eclampsia_or_pi', domain=4, descriptor='Pre-eclampsia with severe features (<34w) _OR_ placental insufficiency with severe features (<34w with/without fetal death (**3 points**)', points=3),
     'pulm_hemorrhage_path': Criterion(key='pulm_hemorrhage_path', domain=3, descriptor='Pulmonary hemorrhage (BAL or pathology)', points=5),
     'pulm_hemorrhage_symptoms': Criterion(key='pulm_hemorrhage_symptoms', domain=3, descriptor='Pulmonary hemorrhage (symptoms and imaging)', points=2),
     'single_lac': Criterion(key='single_lac', domain=7, descriptor='Positive LAC (single – one time) (**1 point**)', points=1),

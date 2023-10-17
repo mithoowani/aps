@@ -5,16 +5,17 @@ Full text: Arthritis Rheumatol . 2023 Oct;75(10):1687-1702.  doi: 10.1002/art.42
 
 # TODO: Consider adding type hinting in future
 # TODO: Refactor the generic pages to a common function (DRY)
+# TODO: Clean up docstrings
 
 import streamlit as st
 from aps_criteria import Criterion, criteria
 
-ENTRY_CLINICAL_CRITERIA = ['Macrovascular: Venous thromboembolism',
-                           'Macrovascular: Arterial thromboembolism',
-                           'Microvascular',
-                           'Obstetric criteria',
-                           'Cardiac valve',
-                           'Hematology']
+ENTRY_CLINICAL_CRITERIA = ['Venous thromboembolism',
+                           'Arterial thromboembolism',
+                           'Microvascular (_e.g._ livedo racemosa, pulmonary hemorrhage, aPL nephropathy, adrenal hemorrhage...)',
+                           'Obstetric morbidity (_e.g._ 3 or more consecutive early fetal losses...)',
+                           'Cardiac valve thickening or vegetation',
+                           'Thrombocytopenia']
 
 ENTRY_LAB_CRITERIA = ['Lupus anticoagulant',
                       'Anti-cardiolipin (IgG or IgM) at moderate-high titre',
@@ -45,6 +46,25 @@ def update_cache(key: str):
     """Updates session_sate.cache to reflect the current state of each widget; this ensures
     that the state gets preserved when switching between pages in the app"""
     st.session_state.cache[key] = st.session_state[key]
+
+
+def calculate_scores():
+    """Calculates the clinical and laboratory scores, returns a dictionary of scores representing total score in each
+    domain. Note that only the highest score per domain counts toward the total score"""
+
+    items_selected_per_domain = {n: [0] for n in range(1, 9)}  # each domain starts with score of 0
+    score_per_domain = {n: 0 for n in range(1, 9)}
+
+    for criterion, checked in st.session_state.cache.items():
+        if checked:
+            domain = criteria[criterion].domain
+            points = criteria[criterion].points
+            items_selected_per_domain[domain].append(points)
+
+    for domain, points in items_selected_per_domain.items():
+        score_per_domain[domain] = max(points)
+
+    return score_per_domain
 
 
 def stateful_checkbox(criterion: Criterion):
@@ -91,8 +111,21 @@ def show_next_and_back_buttons(last_page=False, score_page=False):
         st.rerun()
 
 
+def hide_streamlit_header_footer():
+    hide_streamlit_style = """
+                    <style>
+                    [data-testid="stToolbar"] {visibility: hidden !important;}
+                    footer {visibility: hidden !important;}
+                    </style>
+                    """
+    st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
+
 def show_entry_criteria_page():
     """Page showing entry criteria for algorithm"""
+
+    hide_streamlit_header_footer()
+
     st.write("# Step 1: Entry criteria")
     col1, col2 = st.columns(2)
     with col1:
@@ -101,9 +134,12 @@ def show_entry_criteria_page():
             st.checkbox(criterion, key=f'entry_clinical_{i}')
 
     with col2:
-        st.write('#### Positive antiphospholipid test within three years of the clinical criterion')
+        st.write('#### Positive aPL test within three years of the clinical criterion')
         for i, criterion in enumerate(ENTRY_LAB_CRITERIA):
             st.checkbox(criterion, key=f'entry_lab_{i}')
+
+    st.caption('Note: Refer to full text or subsequent pages for more details. '
+               '_Moderate positive aPL test_ = 40-79 units, _high positive aPL test_ ≥ 80 units.')
 
     # Can only proceed if patient meets at least one clinical and one lab criterion
     submit_entry_criteria = st.button('Apply additive criteria', disabled=not meets_entry_criteria())
@@ -113,13 +149,15 @@ def show_entry_criteria_page():
         st.session_state['page'] += 1
         st.rerun()
 
-    st.write(st.session_state)
-
 
 def show_vte_page():
     """Page showing additive criteria for D1 (venous thromboembolism)"""
+
+    hide_streamlit_header_footer()
+
     st.write("# Additive clinical criteria #")
     st.write('### D1. Macrovascular (Venous thromboembolism) ###')
+
     major_risk_factors_tab, minor_risk_factors_tab = st.tabs(['__Major risk factors__', '__Minor risk factors__'])
     with major_risk_factors_tab:
         st.markdown("""
@@ -127,6 +165,7 @@ def show_vte_page():
         2.  **Hospital admission** confined to bed (only bathroom privileges) with an acute illness for at least 3 days within 3 months prior to the event. Major trauma with fractures or spinal cord injury within 1 month prior to the event
         3.  **Surgery** with general/spinal/epidural anesthesia for >30 minutes within 3 months prior to the event
         """)
+
     with minor_risk_factors_tab:
         st.markdown("""
         1.  **Active systemic autoimmune disease or active inflammatory bowel disease** using disease activity measures guided by current recommendations.
@@ -155,8 +194,12 @@ def show_vte_page():
 
 def show_ate_page():
     """Page showing additive criteria for D2 (arterial thromboembolism)"""
+
+    hide_streamlit_header_footer()
+
     st.write("# Additive clinical criteria #")
     st.write('### D2. Macrovascular (Arterial thromboembolism) ###')
+
     high_risk_factors_tab, mod_risk_factors_tab = st.tabs(
         ['__High CVD risk factors__', '__Moderate CVD risk factors__'])
     with high_risk_factors_tab:
@@ -166,6 +209,7 @@ def show_ate_page():
         3.  **Diabetes mellitus** with organ damage or long disease duration (type 1 for ≥20 years; type 2 for ≥10 years)
         4.  **Hyperlipidemia** (severe) with total cholesterol ≥310 mg/dl (8 mmoles/liter) or low-density lipoprotein (LDL)–cholesterol >190 mg/dl (4.9 mmoles/liter)
         """)
+
     with mod_risk_factors_tab:
         st.markdown("""
         1.  **Arterial hypertension** on treatment, or with persistent systolic BP ≥140 mm Hg or diastolic BP ≥90 mm Hg
@@ -190,6 +234,9 @@ def show_ate_page():
 
 def show_microvascular_page():
     """Page showing additive criteria for D3 (microvascular)"""
+
+    hide_streamlit_header_footer()
+
     suspected_microvascular_criteria = [criterion for criterion in criteria.values() if (criterion.domain == 3 and
                                                                                          criterion.points == 2)]
 
@@ -214,7 +261,11 @@ def show_microvascular_page():
 
 def show_obstetric_page():
     """Page showing additive criteria for D4 (obstetric)"""
+
+    hide_streamlit_header_footer()
+
     obstetric_criteria = [criterion for criterion in criteria.values() if criterion.domain == 4]
+    obstetric_criteria.sort(key=lambda x: x.points)
 
     st.write("# Additive clinical criteria #")
     st.write('### D4. Obstetric ###')
@@ -226,7 +277,11 @@ def show_obstetric_page():
 
 def show_cardiac_page():
     """Page showing additive criteria for D5 (cardiac valve)"""
+
+    hide_streamlit_header_footer()
+
     cardiac_criteria = [criterion for criterion in criteria.values() if criterion.domain == 5]
+    cardiac_criteria.sort(key=lambda x: x.points)
 
     st.write("# Additive clinical criteria #")
     st.write('### D5. Cardiac valve ###')
@@ -238,6 +293,9 @@ def show_cardiac_page():
 
 def show_hematology_page():
     """Page showing additive criteria for D6 (hematology)"""
+
+    hide_streamlit_header_footer()
+
     heme_criteria = [criterion for criterion in criteria.values() if criterion.domain == 6]
 
     st.write("# Additive clinical criteria #")
@@ -250,19 +308,29 @@ def show_hematology_page():
 
 def show_lac_page():
     """Page showing additive criteria for D7 (lupus anticoagulant)"""
+
+    hide_streamlit_header_footer()
+
     lac_criteria = [criterion for criterion in criteria.values() if criterion.domain == 7]
+    lac_criteria.sort(key=lambda x: x.points)
 
     st.write("# Additive laboratory criteria #")
     st.write('### D7. aPL test by coagulation-based functional assay (lupus anticoagulant test [LAC]) ###')
     for key in lac_criteria:
         stateful_checkbox(key)
 
+    st.caption('Note: Refer to full text for accepted laboratory procedures.')
+
     show_next_and_back_buttons()
 
 
 def show_apl_page():
     """Page showing additive criteria for D8 (aPL tests)"""
+
+    hide_streamlit_header_footer()
+
     apl_criteria = [criterion for criterion in criteria.values() if criterion.domain == 8]
+    apl_criteria.sort(key=lambda x: x.points)
 
     st.write("# Additive laboratory criteria #")
     st.write('### D8. aPL test by solid phase assay (anti-cardiolipin antibody [aCL] ELISA and/or '
@@ -270,27 +338,56 @@ def show_apl_page():
     for key in apl_criteria:
         stateful_checkbox(key)
 
+    st.caption('Note: _Moderate positive aPL test_ = 40-79 units, _high positive aPL test_ ≥ 80 units. Refer to full '
+               'text for accepted laboratory procedures.')
+
     show_next_and_back_buttons(last_page=True)
 
 
 def show_score():
     """Page showing the final scoring criteria"""
+
+    hide_streamlit_header_footer()
+
+    scores = calculate_scores()
+    total_clinical_score = sum(scores[i] for i in range(1, 7))
+    total_lab_score = sum(scores[i] for i in range(7, 9))
+
+    score_text = f"""
+    Domain                                  Score
+    D1: Venous thromboembolism              {scores[1]}              
+    D2: Arterial thromboembolism            {scores[2]} 
+    D3: Microvascular                       {scores[3]} 
+    D4: Obstetric                           {scores[4]} 
+    D5: Cardiac Valve                       {scores[5]} 
+    D6: Hematology                          {scores[6]}     
+    --------------------------------------------------
+    Total Clinical                          {total_clinical_score}
+    
+    D7: Laboratory (lupus anticoagulant)    {scores[7]} 
+    D8: Laboratory (aPL serology)           {scores[8]} 
+    --------------------------------------------------
+    Total Lab                               {total_lab_score}
+    """
+
     st.write("# Total score #")
-    scores = [0]
+    st.write('_Classified as APS for research purposes if there are at least 3 points '
+             'from clinical domains **AND** at least 3 points from laboratory domains_')
 
-    multi = '''
-    If you end a line with two spaces,
-    a soft return is used for the next line.
-    Two (or more) newline characters in a row will result in a hard return
-    '''
+    st.markdown('#####')
 
-    st.code(multi, language='markdown')  # This displays nicely for EMR copy/paste
+    if total_clinical_score >= 3 and total_lab_score >= 3:
+        st.write('##### Result: Classified as APS for research purposes')
 
-    st.write(st.session_state.cache)
+    else:
+        st.write('##### Result: Does not meet APS classification criteria')
 
-    show_next_and_back_buttons(score_page=True)  # TODO: Restart button?
+    st.code(score_text)  # This displays nicely for EMR copy/paste
+    st.caption('Copy and paste into your EMR')
 
-    # TODO: Implement this function
+    st.markdown('#####')
+
+    show_next_and_back_buttons(score_page=True)
 
 
 if __name__ == '__main__':
